@@ -20,22 +20,47 @@ if "show_thanks_screen" not in st.session_state:
 STORAGE_BUCKET = "factures-referent"
 
 
+_MIME_MAP = {
+    ".pdf": "application/pdf",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".xls": "application/vnd.ms-excel",
+    ".csv": "text/csv",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
+
+
+def _get_mime(filename: str, streamlit_type: str) -> str:
+    ext = Path(filename).suffix.lower()
+    return _MIME_MAP.get(ext) or streamlit_type or "application/octet-stream"
+
+
 def _upload_file_to_storage(client, uploaded_file, prefix: str) -> str:
     """Upload un UploadedFile vers Supabase Storage et retourne l'URL publique.
-    En cas d'erreur, retourne le nom du fichier comme fallback."""
-    try:
-        safe_name = uploaded_file.name.replace(" ", "_")
-        storage_path = f"{prefix}/{uuid.uuid4()}_{safe_name}"
-        file_bytes = uploaded_file.getvalue()
-        client.storage.from_(STORAGE_BUCKET).upload(
-            path=storage_path,
-            file=file_bytes,
-            file_options={"content-type": uploaded_file.type or "application/octet-stream"},
-        )
-        public_url = client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
-        return public_url
-    except Exception:
-        return uploaded_file.name
+    Lève une exception explicite en cas d'échec (ne swallows plus silencieusement)."""
+    safe_name = uploaded_file.name.replace(" ", "_")
+    storage_path = f"{prefix}/{uuid.uuid4()}_{safe_name}"
+    file_bytes = uploaded_file.getvalue()
+    mime = _get_mime(uploaded_file.name, uploaded_file.type)
+
+    client.storage.from_(STORAGE_BUCKET).upload(
+        path=storage_path,
+        file=file_bytes,
+        file_options={"content-type": mime},
+    )
+
+    result = client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
+    # Selon la version du SDK, get_public_url renvoie str ou dict
+    if isinstance(result, dict):
+        public_url = result.get("publicURL") or result.get("publicUrl") or result.get("data", {}).get("publicUrl", "")
+    else:
+        public_url = str(result)
+    return public_url
 
 
 def save_referent_response(reponses: dict) -> tuple[bool, str]:
