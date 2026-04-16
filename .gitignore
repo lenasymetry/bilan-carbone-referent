@@ -1,0 +1,17 @@
+# Secrets Streamlit - ne jamais committer
+.streamlit/secrets.toml
+
+# Base de données locale SQLite
+*.db
+
+# Fichiers SQL de migration (contiennent des infos de schema sensibles)
+supabase_schema*.sql
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# macOS
+.DS_Store
