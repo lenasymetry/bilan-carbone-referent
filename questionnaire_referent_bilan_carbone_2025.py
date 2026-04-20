@@ -370,12 +370,10 @@ with st.expander("Section 1 : Énergie & Locaux", expanded=True):
     )
 
     facture_gaz_2025 = st.file_uploader(
-        "Facture de gaz de 2025 (Importez jusqu'à 10 fichiers) :*",
+        "Facture d'énergie de 2025 (Importez autant de fichiers que nécessaire) :*",
         accept_multiple_files=True,
         key="ref_facture_gaz_2025",
     )
-    if len(facture_gaz_2025) > 10:
-        st.error("Vous pouvez importer au maximum 10 fichiers pour la facture de gaz.")
 
     consommation_electricite = st.number_input(
         "Consommation annuelle d'Électricité (kWh) :*",
@@ -384,12 +382,10 @@ with st.expander("Section 1 : Énergie & Locaux", expanded=True):
     )
 
     facture_electricite_2025 = st.file_uploader(
-        "Facture d'électricité de 2025 (Importez jusqu'à 10 fichiers) :*",
+        "Facture d'électricité de 2025 (Importez autant de fichiers que nécessaire) :*",
         accept_multiple_files=True,
         key="ref_facture_electricite_2025",
     )
-    if len(facture_electricite_2025) > 10:
-        st.error("Vous pouvez importer au maximum 10 fichiers pour la facture d'électricité.")
 
     surface_bureaux = st.number_input(
         "Surface totale des bureaux (m²) :*",
@@ -409,7 +405,7 @@ with st.expander("Section 1 : Énergie & Locaux", expanded=True):
     )
 
     payeur_facture_gaz = st.radio(
-        "Qui paie les factures de gaz ?*",
+        "Qui paie les factures d'énergie ?*",
         ["La société d'exploitation", "Le propriétaire via les charges"],
     )
 
@@ -522,9 +518,7 @@ if st.button("🚀 Envoyer le questionnaire"):
         erreurs.append("- Adresse e-mail (format invalide)")
 
     if len(facture_gaz_2025) == 0:
-        erreurs.append("- Facture de gaz de 2025 (au moins 1 fichier)")
-    if len(facture_gaz_2025) > 10 or len(facture_electricite_2025) > 10:
-        erreurs.append("- Vérifiez le nombre de fichiers importés (maximum 10 par facture)")
+        erreurs.append("- Facture d'énergie de 2025 (au moins 1 fichier)")
     if len(facture_electricite_2025) == 0:
         erreurs.append("- Facture d'électricité de 2025 (au moins 1 fichier)")
     if plan_locaux is None:
@@ -576,8 +570,9 @@ if st.button("🚀 Envoyer le questionnaire"):
                     ]
                     if plan_locaux is not None:
                         url_plan = _upload_file_to_storage(_client, plan_locaux, "plans_locaux")
-            except Exception:
-                pass  # on garde les noms de fichiers en fallback, save_referent_response gérera
+            except Exception as upload_err:
+                st.error(f"Erreur lors de l'upload des fichiers : {upload_err}")
+                st.stop()
 
         reponses = {
             "nom": nom,
