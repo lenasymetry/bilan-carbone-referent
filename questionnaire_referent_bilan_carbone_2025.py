@@ -357,6 +357,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+office = st.selectbox(
+    "Office représenté :*",
+    ["", "Bordeaux", "Chatou", "Massy", "Lille", "Nice", "Toulouse"],
+    format_func=lambda x: "Sélectionnez un office" if x == "" else x,
+)
+
 with st.expander("Coordonnées du référent", expanded=True):
     nom = st.text_input("Nom :*")
     prenom = st.text_input("Prénom :*")
@@ -506,6 +512,9 @@ st.markdown("---")
 if st.button("🚀 Envoyer le questionnaire"):
     erreurs = []
 
+    if not office:
+        erreurs.append("- Office représenté")
+
     if not nom.strip():
         erreurs.append("- Nom")
     if not prenom.strip():
@@ -575,6 +584,7 @@ if st.button("🚀 Envoyer le questionnaire"):
                 st.stop()
 
         reponses = {
+            "office": office,
             "nom": nom,
             "prenom": prenom,
             "poste": poste,
