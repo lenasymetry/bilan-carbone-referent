@@ -490,13 +490,6 @@ with st.expander("Section 5 : Équipements & Achats", expanded=True):
         nb_switchs = st.number_input("Switchs", min_value=0, step=1)
         nb_box_routeurs = st.number_input("Box / Routeurs", min_value=0, step=1)
 
-    st.markdown("")
-    nombre_nouveaux_pc = st.number_input(
-        "Nombre de nouveaux PC achetés (sur 2025) :",
-        min_value=0,
-        step=1,
-    )
-
     mobilier_neuf = st.text_input(
         "Mobilier neuf (bureaux, chaises) : (Oui/Non, si oui préciser la quantité)"
     )
@@ -636,7 +629,6 @@ if st.button("🚀 Envoyer le questionnaire"):
             "parc_nas": nb_nas,
             "parc_switchs": nb_switchs,
             "parc_box_routeurs": nb_box_routeurs,
-            "nombre_nouveaux_pc_2025": nombre_nouveaux_pc,
             "mobilier_neuf": mobilier_neuf,
             "tri_selectif": tri_selectif,
             "volume_dechets_non_recycles": volume_dechets_non_recycles,
