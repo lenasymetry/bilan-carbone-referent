@@ -472,18 +472,25 @@ with st.expander("Section 3 : Déplacements Professionnels", expanded=True):
     )
 
 with st.expander("Section 5 : Équipements & Achats", expanded=True):
-    nombre_ordinateurs_portables = st.number_input(
-        "Nombre d'ordinateur portables :",
-        min_value=0,
-        step=1,
-    )
+    st.markdown("**Inventaire du parc informatique actuel dans les locaux**")
+    st.caption("Indiquez les quantités de matériels actuellement en service.")
 
-    nombre_ecrans_fixes = st.number_input(
-        "Nombre d'écrans fixes :",
-        min_value=0,
-        step=1,
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+        nb_pc_fixes = st.number_input("PC fixes", min_value=0, step=1)
+        nb_portables = st.number_input("Portables", min_value=0, step=1)
+        nb_ecrans = st.number_input("Écrans", min_value=0, step=1)
+        nb_smartphones = st.number_input("Smartphones", min_value=0, step=1)
+        nb_imprimantes = st.number_input("Imprimantes", min_value=0, step=1)
+        nb_scanners = st.number_input("Scanners", min_value=0, step=1)
+    with col2:
+        nb_telephones_ip = st.number_input("Téléphones IP", min_value=0, step=1)
+        nb_serveurs = st.number_input("Serveurs", min_value=0, step=1)
+        nb_nas = st.number_input("NAS", min_value=0, step=1)
+        nb_switchs = st.number_input("Switchs", min_value=0, step=1)
+        nb_box_routeurs = st.number_input("Box / Routeurs", min_value=0, step=1)
 
+    st.markdown("")
     nombre_nouveaux_pc = st.number_input(
         "Nombre de nouveaux PC achetés (sur 2025) :",
         min_value=0,
@@ -618,8 +625,17 @@ if st.button("🚀 Envoyer le questionnaire"):
             "nombre_total_collaborateurs": nombre_total_collaborateurs,
             "kilometrage_annuel_moyen_par_collaborateur": kilometrage_annuel_moyen,
             "nombre_trajets_train": nombre_trajets_train,
-            "nombre_ordinateurs_portables": nombre_ordinateurs_portables,
-            "nombre_ecrans_fixes": nombre_ecrans_fixes,
+            "parc_pc_fixes": nb_pc_fixes,
+            "parc_portables": nb_portables,
+            "parc_ecrans": nb_ecrans,
+            "parc_smartphones": nb_smartphones,
+            "parc_imprimantes": nb_imprimantes,
+            "parc_scanners": nb_scanners,
+            "parc_telephones_ip": nb_telephones_ip,
+            "parc_serveurs": nb_serveurs,
+            "parc_nas": nb_nas,
+            "parc_switchs": nb_switchs,
+            "parc_box_routeurs": nb_box_routeurs,
             "nombre_nouveaux_pc_2025": nombre_nouveaux_pc,
             "mobilier_neuf": mobilier_neuf,
             "tri_selectif": tri_selectif,
