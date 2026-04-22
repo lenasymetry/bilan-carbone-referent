@@ -87,6 +87,7 @@ def save_referent_response(reponses: dict) -> tuple[bool, str]:
 
             client = create_client(supabase_url, str(st.secrets[supabase_key_name]))
             payload = {
+                "ville": reponses.get("ville", reponses.get("office", "")),
                 "nom": reponses.get("nom", ""),
                 "prenom": reponses.get("prenom", ""),
                 "poste": reponses.get("poste", ""),
@@ -120,6 +121,7 @@ def save_referent_response(reponses: dict) -> tuple[bool, str]:
                 CREATE TABLE IF NOT EXISTS questionnaire_referent_reponses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    ville TEXT,
                     nom TEXT NOT NULL,
                     prenom TEXT NOT NULL,
                     poste TEXT,
@@ -129,18 +131,26 @@ def save_referent_response(reponses: dict) -> tuple[bool, str]:
                 """
             )
 
+            existing_columns = {
+                row[1] for row in cur.execute("PRAGMA table_info(questionnaire_referent_reponses)").fetchall()
+            }
+            if "ville" not in existing_columns:
+                cur.execute("ALTER TABLE questionnaire_referent_reponses ADD COLUMN ville TEXT")
+
             cur.execute(
                 """
                 INSERT INTO questionnaire_referent_reponses (
+                    ville,
                     nom,
                     prenom,
                     poste,
                     email,
                     reponses
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
+                    reponses.get("ville", reponses.get("office", "")),
                     reponses.get("nom", ""),
                     reponses.get("prenom", ""),
                     reponses.get("poste", ""),
@@ -357,11 +367,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-office = st.selectbox(
-    "Office représenté :*",
-    ["", "Bordeaux", "Chatou", "Massy", "Lille", "Nice", "Toulouse"],
-    format_func=lambda x: "Sélectionnez un office" if x == "" else x,
-)
+with st.expander("Office représenté", expanded=True):
+    ville = st.selectbox(
+        "Office représenté :*",
+        ["", "Bordeaux", "Chatou", "Massy", "Lille", "Nice", "Toulouse"],
+        format_func=lambda x: "Sélectionnez un office" if x == "" else x,
+    )
 
 with st.expander("Coordonnées du référent", expanded=True):
     nom = st.text_input("Nom :*")
@@ -512,7 +523,7 @@ st.markdown("---")
 if st.button("🚀 Envoyer le questionnaire"):
     erreurs = []
 
-    if not office:
+    if not ville:
         erreurs.append("- Office représenté")
 
     if not nom.strip():
@@ -584,7 +595,8 @@ if st.button("🚀 Envoyer le questionnaire"):
                 st.stop()
 
         reponses = {
-            "office": office,
+            "ville": ville,
+            "office": ville,
             "nom": nom,
             "prenom": prenom,
             "poste": poste,
