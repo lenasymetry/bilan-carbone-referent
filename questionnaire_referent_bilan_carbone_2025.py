@@ -360,7 +360,10 @@ st.markdown(
       <h1>Votre quotidien compte pour le climat 🌱</h1>
       <p>
         Ce questionnaire est destiné à la personne référente qui relie tous les secteurs de la société.
-        Merci de compléter les informations ci-dessous pour construire un bilan carbone fiable et actionnable.
+                Merci de compléter les informations ci-dessous pour construire un bilan carbone fiable et actionnable.
+                Veuillez renseigner les informations dont le référent est en possession ; pour les questions qui ne
+                vous concernent pas ou pour lesquelles vous ne disposez pas de l'information, vous pouvez laisser
+                les champs sans réponse.
       </p>
     </div>
     """,
@@ -466,7 +469,7 @@ with st.expander("Section 3 : Déplacements Professionnels", expanded=True):
     )
 
     docs_vehicules_pro = st.file_uploader(
-        "Veuillez déposer ici l'ensemble des documents relatifs aux véhicules professionnels (classification, kilométrage, émissions de CO2, etc.) :",
+        "OU veuillez déposer ici l'ensemble des documents relatifs aux véhicules professionnels (classification, kilométrage, émissions de CO2, etc.) :",
         accept_multiple_files=True,
         key="ref_docs_vehicules_pro",
     )
@@ -478,7 +481,7 @@ with st.expander("Section 3 : Déplacements Professionnels", expanded=True):
     )
 
     docs_deplacements_hors_voiture = st.file_uploader(
-        "Veuillez déposer ici l'ensemble des documents relatifs aux déplacements hors véhicules professionnels (train, avion, etc.) :",
+        "OU veuillez déposer ici l'ensemble des documents relatifs aux déplacements hors véhicules professionnels (train, avion, etc.) :",
         accept_multiple_files=True,
         key="ref_docs_deplacements_hors_voiture",
     )
