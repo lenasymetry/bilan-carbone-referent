@@ -359,8 +359,10 @@ st.markdown(
     <div class="hero">
       <h1>Votre quotidien compte pour le climat 🌱</h1>
       <p>
-        Ce questionnaire est destiné à la personne référente qui relie tous les secteurs de la société.
+                Ce questionnaire est destiné à la personne référente qui relie tous les secteurs de la société.
                 Merci de compléter les informations ci-dessous pour construire un bilan carbone fiable et actionnable.
+            </p>
+            <p>
                 Veuillez renseigner les informations dont le référent est en possession ; pour les questions qui ne
                 vous concernent pas ou pour lesquelles vous ne disposez pas de l'information, vous pouvez laisser
                 les champs sans réponse.
