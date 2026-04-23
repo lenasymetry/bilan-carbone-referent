@@ -521,127 +521,89 @@ with st.expander("Section 7 : Services Externes", expanded=True):
 
 st.markdown("---")
 if st.button("🚀 Envoyer le questionnaire"):
-    erreurs = []
+    # Soumission autorisee meme avec des champs incomplets.
+    urls_gaz = [f.name for f in facture_gaz_2025]
+    urls_elec = [f.name for f in facture_electricite_2025]
+    url_plan = plan_locaux.name if plan_locaux else None
 
-    if not ville:
-        erreurs.append("- Office représenté")
+    supabase_key_name = None
+    if "SUPABASE_SERVICE_ROLE_KEY" in st.secrets:
+        supabase_key_name = "SUPABASE_SERVICE_ROLE_KEY"
+    elif "SUPABASE_KEY" in st.secrets:
+        supabase_key_name = "SUPABASE_KEY"
 
-    if not nom.strip():
-        erreurs.append("- Nom")
-    if not prenom.strip():
-        erreurs.append("- Prénom")
-    if not poste.strip():
-        erreurs.append("- Poste")
-    if not email.strip():
-        erreurs.append("- Adresse e-mail")
-    elif "@" not in email or "." not in email.split("@")[-1]:
-        erreurs.append("- Adresse e-mail (format invalide)")
+    if "SUPABASE_URL" in st.secrets and supabase_key_name is not None:
+        try:
+            _supabase = import_module("supabase")
+            _create_client = getattr(_supabase, "create_client")
+            raw_url = str(st.secrets["SUPABASE_URL"]).strip().rstrip("/")
+            parsed = urlparse(raw_url)
+            supabase_url = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme else raw_url
+            _client = _create_client(supabase_url, str(st.secrets[supabase_key_name]))
 
-    if len(facture_gaz_2025) == 0:
-        erreurs.append("- Facture d'énergie de 2025 (au moins 1 fichier)")
-    if len(facture_electricite_2025) == 0:
-        erreurs.append("- Facture d'électricité de 2025 (au moins 1 fichier)")
-    if plan_locaux is None:
-        erreurs.append("- Plan des locaux")
-    if consommation_electricite <= 0:
-        erreurs.append("- Consommation annuelle d'Électricité (kWh)")
-    if surface_bureaux <= 0:
-        erreurs.append("- Surface totale des bureaux (m²)")
-    if not etages_bureaux:
-        erreurs.append("- À quel(s) étage(s) se situent vos bureaux ?")
-    if not plusieurs_compteurs.strip():
-        erreurs.append("- L'étude possède-t-elle plusieurs compteurs d'électricité ?")
-    if not fournisseur_electricite.strip():
-        erreurs.append("- Nom du fournisseur d'électricité")
-    if locaux_climatises == "OUI" and not type_gaz_refrigerant.strip():
-        erreurs.append("- Type de gaz réfrigérant (si locaux climatisés)")
+            with st.spinner("Envoi des fichiers en cours..."):
+                urls_gaz = [
+                    _upload_file_to_storage(_client, f, "factures_gaz")
+                    for f in facture_gaz_2025
+                ]
+                urls_elec = [
+                    _upload_file_to_storage(_client, f, "factures_elec")
+                    for f in facture_electricite_2025
+                ]
+                if plan_locaux is not None:
+                    url_plan = _upload_file_to_storage(_client, plan_locaux, "plans_locaux")
+        except Exception as upload_err:
+            st.error(f"Erreur lors de l'upload des fichiers : {upload_err}")
+            st.stop()
 
-    if erreurs:
-        st.error("Veuillez corriger les champs suivants :\n\n" + "\n".join(erreurs))
+    reponses = {
+        "ville": ville,
+        "office": ville,
+        "nom": nom,
+        "prenom": prenom,
+        "poste": poste,
+        "email": email,
+        "type_chauffage": type_chauffage,
+        "facture_gaz_2025": urls_gaz,
+        "consommation_electricite_kwh": consommation_electricite,
+        "facture_electricite_2025": urls_elec,
+        "surface_bureaux_m2": surface_bureaux,
+        "plan_locaux": url_plan,
+        "etages_bureaux": etages_bureaux,
+        "payeur_facture_gaz": payeur_facture_gaz,
+        "plusieurs_compteurs_electricite": plusieurs_compteurs,
+        "quote_part_parties_communes": quote_part_parties_communes,
+        "fournisseur_electricite": fournisseur_electricite,
+        "locaux_climatises": locaux_climatises,
+        "recharge_gaz_frigorigene": recharge_gaz_frigorigene,
+        "type_gaz_refrigerant": type_gaz_refrigerant,
+        "nombre_total_collaborateurs": nombre_total_collaborateurs,
+        "kilometrage_annuel_moyen_par_collaborateur": kilometrage_annuel_moyen,
+        "nombre_trajets_train": nombre_trajets_train,
+        "parc_pc_fixes": nb_pc_fixes,
+        "parc_portables": nb_portables,
+        "parc_ecrans": nb_ecrans,
+        "parc_smartphones": nb_smartphones,
+        "parc_imprimantes": nb_imprimantes,
+        "parc_scanners": nb_scanners,
+        "parc_telephones_ip": nb_telephones_ip,
+        "parc_serveurs": nb_serveurs,
+        "parc_nas": nb_nas,
+        "parc_switchs": nb_switchs,
+        "parc_box_routeurs": nb_box_routeurs,
+        "mobilier_neuf": mobilier_neuf,
+        "tri_selectif": tri_selectif,
+        "volume_dechets_non_recycles": volume_dechets_non_recycles,
+        "stockage_donnees": stockage_donnees,
+        "volume_papier": volume_papier,
+        "volume_envois_postaux": volume_envois_postaux,
+        "societe_nettoyage": societe_nettoyage,
+    }
+
+    db_ok, db_message = save_referent_response(reponses)
+    if db_ok:
+        st.session_state.show_thanks_screen = True
+        st.rerun()
     else:
-        # --- Upload des fichiers vers Supabase Storage ---
-        urls_gaz = [f.name for f in facture_gaz_2025]
-        urls_elec = [f.name for f in facture_electricite_2025]
-        url_plan = plan_locaux.name if plan_locaux else None
-
-        supabase_key_name = None
-        if "SUPABASE_SERVICE_ROLE_KEY" in st.secrets:
-            supabase_key_name = "SUPABASE_SERVICE_ROLE_KEY"
-        elif "SUPABASE_KEY" in st.secrets:
-            supabase_key_name = "SUPABASE_KEY"
-
-        if "SUPABASE_URL" in st.secrets and supabase_key_name is not None:
-            try:
-                _supabase = import_module("supabase")
-                _create_client = getattr(_supabase, "create_client")
-                raw_url = str(st.secrets["SUPABASE_URL"]).strip().rstrip("/")
-                parsed = urlparse(raw_url)
-                supabase_url = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme else raw_url
-                _client = _create_client(supabase_url, str(st.secrets[supabase_key_name]))
-
-                with st.spinner("Envoi des fichiers en cours..."):
-                    urls_gaz = [
-                        _upload_file_to_storage(_client, f, "factures_gaz")
-                        for f in facture_gaz_2025
-                    ]
-                    urls_elec = [
-                        _upload_file_to_storage(_client, f, "factures_elec")
-                        for f in facture_electricite_2025
-                    ]
-                    if plan_locaux is not None:
-                        url_plan = _upload_file_to_storage(_client, plan_locaux, "plans_locaux")
-            except Exception as upload_err:
-                st.error(f"Erreur lors de l'upload des fichiers : {upload_err}")
-                st.stop()
-
-        reponses = {
-            "ville": ville,
-            "office": ville,
-            "nom": nom,
-            "prenom": prenom,
-            "poste": poste,
-            "email": email,
-            "type_chauffage": type_chauffage,
-            "facture_gaz_2025": urls_gaz,
-            "consommation_electricite_kwh": consommation_electricite,
-            "facture_electricite_2025": urls_elec,
-            "surface_bureaux_m2": surface_bureaux,
-            "plan_locaux": url_plan,
-            "etages_bureaux": etages_bureaux,
-            "payeur_facture_gaz": payeur_facture_gaz,
-            "plusieurs_compteurs_electricite": plusieurs_compteurs,
-            "quote_part_parties_communes": quote_part_parties_communes,
-            "fournisseur_electricite": fournisseur_electricite,
-            "locaux_climatises": locaux_climatises,
-            "recharge_gaz_frigorigene": recharge_gaz_frigorigene,
-            "type_gaz_refrigerant": type_gaz_refrigerant,
-            "nombre_total_collaborateurs": nombre_total_collaborateurs,
-            "kilometrage_annuel_moyen_par_collaborateur": kilometrage_annuel_moyen,
-            "nombre_trajets_train": nombre_trajets_train,
-            "parc_pc_fixes": nb_pc_fixes,
-            "parc_portables": nb_portables,
-            "parc_ecrans": nb_ecrans,
-            "parc_smartphones": nb_smartphones,
-            "parc_imprimantes": nb_imprimantes,
-            "parc_scanners": nb_scanners,
-            "parc_telephones_ip": nb_telephones_ip,
-            "parc_serveurs": nb_serveurs,
-            "parc_nas": nb_nas,
-            "parc_switchs": nb_switchs,
-            "parc_box_routeurs": nb_box_routeurs,
-            "mobilier_neuf": mobilier_neuf,
-            "tri_selectif": tri_selectif,
-            "volume_dechets_non_recycles": volume_dechets_non_recycles,
-            "stockage_donnees": stockage_donnees,
-            "volume_papier": volume_papier,
-            "volume_envois_postaux": volume_envois_postaux,
-            "societe_nettoyage": societe_nettoyage,
-        }
-
-        db_ok, db_message = save_referent_response(reponses)
-        if db_ok:
-            st.session_state.show_thanks_screen = True
-            st.rerun()
-        else:
-            st.error("Le questionnaire est valide, mais l'enregistrement principal a échoué.")
-            st.warning(db_message)
+        st.error("L'enregistrement principal a échoué.")
+        st.warning(db_message)
