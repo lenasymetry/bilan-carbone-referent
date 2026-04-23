@@ -465,10 +465,22 @@ with st.expander("Section 3 : Déplacements Professionnels", expanded=True):
         step=1,
     )
 
+    docs_vehicules_pro = st.file_uploader(
+        "Ou insérez ici tous documents en lien avec les véhicules pro (classification, kilométrage, émissions CO2, etc...) :",
+        accept_multiple_files=True,
+        key="ref_docs_vehicules_pro",
+    )
+
     nombre_trajets_train = st.number_input(
         "Nombre de trajets en train (si applicable, pour l'ensemble des collaborateurs) :",
         min_value=0,
         step=1,
+    )
+
+    docs_deplacements_hors_voiture = st.file_uploader(
+        "Ou insérez ici tous les documents en lien avec les trajets HORS voiture pro soit trains, avion etc... :",
+        accept_multiple_files=True,
+        key="ref_docs_deplacements_hors_voiture",
     )
 
 with st.expander("Section 5 : Équipements & Achats", expanded=True):
@@ -525,6 +537,8 @@ if st.button("🚀 Envoyer le questionnaire"):
     urls_gaz = [f.name for f in facture_gaz_2025]
     urls_elec = [f.name for f in facture_electricite_2025]
     url_plan = plan_locaux.name if plan_locaux else None
+    urls_docs_vehicules_pro = [f.name for f in docs_vehicules_pro]
+    urls_docs_deplacements_hors_voiture = [f.name for f in docs_deplacements_hors_voiture]
 
     supabase_key_name = None
     if "SUPABASE_SERVICE_ROLE_KEY" in st.secrets:
@@ -552,6 +566,14 @@ if st.button("🚀 Envoyer le questionnaire"):
                 ]
                 if plan_locaux is not None:
                     url_plan = _upload_file_to_storage(_client, plan_locaux, "plans_locaux")
+                urls_docs_vehicules_pro = [
+                    _upload_file_to_storage(_client, f, "docs_vehicules_pro")
+                    for f in docs_vehicules_pro
+                ]
+                urls_docs_deplacements_hors_voiture = [
+                    _upload_file_to_storage(_client, f, "docs_deplacements_hors_voiture")
+                    for f in docs_deplacements_hors_voiture
+                ]
         except Exception as upload_err:
             st.error(f"Erreur lors de l'upload des fichiers : {upload_err}")
             st.stop()
@@ -579,7 +601,9 @@ if st.button("🚀 Envoyer le questionnaire"):
         "type_gaz_refrigerant": type_gaz_refrigerant,
         "nombre_total_collaborateurs": nombre_total_collaborateurs,
         "kilometrage_annuel_moyen_par_collaborateur": kilometrage_annuel_moyen,
+        "docs_vehicules_pro": urls_docs_vehicules_pro,
         "nombre_trajets_train": nombre_trajets_train,
+        "docs_deplacements_hors_voiture": urls_docs_deplacements_hors_voiture,
         "parc_pc_fixes": nb_pc_fixes,
         "parc_portables": nb_portables,
         "parc_ecrans": nb_ecrans,
