@@ -466,7 +466,7 @@ with st.expander("Section 3 : Déplacements Professionnels", expanded=True):
     )
 
     docs_vehicules_pro = st.file_uploader(
-        "Ou insérez ici tous documents en lien avec les véhicules pro (classification, kilométrage, émissions CO2, etc...) :",
+        "Veuillez déposer ici l'ensemble des documents relatifs aux véhicules professionnels (classification, kilométrage, émissions de CO2, etc.) :",
         accept_multiple_files=True,
         key="ref_docs_vehicules_pro",
     )
@@ -478,7 +478,7 @@ with st.expander("Section 3 : Déplacements Professionnels", expanded=True):
     )
 
     docs_deplacements_hors_voiture = st.file_uploader(
-        "Ou insérez ici tous les documents en lien avec les trajets HORS voiture pro soit trains, avion etc... :",
+        "Veuillez déposer ici l'ensemble des documents relatifs aux déplacements hors véhicules professionnels (train, avion, etc.) :",
         accept_multiple_files=True,
         key="ref_docs_deplacements_hors_voiture",
     )
